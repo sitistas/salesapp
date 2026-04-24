@@ -2,6 +2,10 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from .models import Sale, Promotion, Announcement
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import Sale
+
 
 @login_required
 def dashboard_view(request):
@@ -30,3 +34,16 @@ def dashboard_view(request):
     }
     
     return render(request, 'dashboard.html', context)
+
+class SaleListView(LoginRequiredMixin, ListView):
+    model = Sale
+    template_name = 'sales/sale_list.html'
+    context_object_name = 'sales'
+    paginate_by = 50  # Spec requirement
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('product', 'store', 'salesperson')
+        # Αν είναι promoter, φίλτραρε τα δεδομένα
+        if self.request.user.role == 'promoter':
+            return queryset.filter(salesperson=self.request.user)
+        return queryset

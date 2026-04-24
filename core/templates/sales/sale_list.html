@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Πωλήσεις</h1>
+    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Νέα Πώληση
+    </a>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+                <th class="px-6 py-3">Ημερομηνία</th>
+                <th class="px-6 py-3">Κατάστημα</th>
+                <th class="px-6 py-3">Προϊόν</th>
+                <th class="px-6 py-3">Ποσότητα</th>
+                {% if user.role != 'promoter' %}
+                <th class="px-6 py-3">Promoter</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr class="border-b hover:bg-gray-50 text-gray-900">
+                <td class="px-6 py-4">{{ sale.date|date:"d/m/Y" }}</td>
+                <td class="px-6 py-4">{{ sale.store.name }}</td>
+                <td class="px-6 py-4">{{ sale.product.name }}</td>
+                <td class="px-6 py-4 font-bold">{{ sale.quantity }}</td>
+                {% if user.role != 'promoter' %}
+                <td class="px-6 py-4">{{ sale.salesperson.get_full_name }}</td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Δεν βρέθηκαν πωλήσεις.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="flex justify-center mt-6">
+    <nav class="inline-flex">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border rounded-l-lg bg-white hover:bg-gray-100">Προηγούμενη</a>
+        {% endif %}
+        <span class="px-3 py-2 border bg-gray-50 text-blue-600 font-bold">{{ page_obj.number }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border rounded-r-lg bg-white hover:bg-gray-100">Επόμενη</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}
