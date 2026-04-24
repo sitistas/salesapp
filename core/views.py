@@ -12,6 +12,29 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from .models import Sale
+from .models import Competition
+
+class CompetitionListView(LoginRequiredMixin, ListView):
+    model = Competition
+    template_name = 'competition/competition_list.html'
+    context_object_name = 'entries'
+    
+    def get_queryset(self):
+        # Οι Promoters βλέπουν μόνο τα δικά τους
+        if self.request.user.role == 'promoter':
+            return Competition.objects.filter(salesperson=self.request.user).select_related('store')
+        return Competition.objects.all().select_related('store', 'salesperson')
+
+class CompetitionCreateView(LoginRequiredMixin, CreateView):
+    model = Competition
+    fields = ['store', 'comments']
+    template_name = 'competition/competition_form.html'
+    success_url = reverse_lazy('competition-list')
+
+    def form_valid(self, form):
+        form.instance.salesperson = self.request.user
+        return super().form_valid(form)
+    
 
 @login_required
 def dashboard_view(request):

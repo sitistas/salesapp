@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Ανταγωνισμός</h1>
+    <a href="{% url 'competition-create' %}" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+        + Καταγραφή
+    </a>
+</div>
+
+<div class="space-y-4">
+    {% for entry in entries %}
+    <div class="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
+        <div class="flex justify-between items-start mb-2">
+            <span class="text-sm font-bold text-orange-600">{{ entry.store.name }}</span>
+            <span class="text-xs text-gray-400">{{ entry.date|date:"d/m/Y" }}</span>
+        </div>
+        <p class="text-gray-700 text-sm leading-relaxed">{{ entry.comments }}</p>
+        <div class="mt-4 text-xs text-gray-500">
+            Καταχωρήθηκε από: {{ entry.salesperson.get_full_name }}
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-gray-500 py-10 italic">Δεν υπάρχουν καταγραφές ανταγωνισμού.</p>
+    {% endfor %}
+</div>
+{% endblock %}

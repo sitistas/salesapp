@@ -69,10 +69,14 @@ class Promotion(BaseModel):
     salesperson = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Competition(BaseModel):
-    date = models.DateField()
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
-    comment = models.TextField()
+    comments = models.TextField()
     salesperson = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name_plural = "Competition"
 
 class Announcement(BaseModel):
     title = models.CharField(max_length=200)
