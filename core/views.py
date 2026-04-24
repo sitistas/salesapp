@@ -5,7 +5,9 @@ from .models import Sale, Promotion, Announcement
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Sale
-
+from django.views.generic.edit import CreateView
+from django.urls import reverse_lazy
+from .forms import SaleForm
 
 @login_required
 def dashboard_view(request):
@@ -43,7 +45,17 @@ class SaleListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('product', 'store', 'salesperson')
-        # Αν είναι promoter, φίλτραρε τα δεδομένα
         if self.request.user.role == 'promoter':
-            return queryset.filter(salesperson=self.request.user)
-        return queryset
+            queryset = queryset.filter(salesperson=self.request.user)
+        return queryset.order_by('-date', '-created_at')
+    
+class SaleCreateView(LoginRequiredMixin, CreateView):
+    model = Sale
+    form_class = SaleForm
+    template_name = 'sales/sale_form.html'
+    success_url = reverse_lazy('sale-list')
+
+    def form_valid(self, form):
+        # Αυτόματη ανάθεση του συνδεδεμένου χρήστη ως salesperson
+        form.instance.salesperson = self.request.user
+        return super().form_valid(form)

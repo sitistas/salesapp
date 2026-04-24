@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Νέα Καταχώρηση Πώλησης</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="space-y-4">
+            {% for field in form %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 flex gap-4">
+            <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">
+                Αποθήκευση
+            </button>
+            <a href="{% url 'sale-list' %}" class="flex-1 bg-gray-100 text-center text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-200">
+                Ακύρωση
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
