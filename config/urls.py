@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from core.views import dashboard_view, SaleListView, SaleCreateView # Εδώ το νέο import
+from core.views import dashboard_view, SaleListView, SaleCreateView,export_sales_excel # Εδώ το νέο import
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('', dashboard_view, name='dashboard'), # Η αρχική σελίδα
     path('sales/', SaleListView.as_view(), name='sale-list'),
     path('sales/add/', SaleCreateView.as_view(), name='sale-create'), # Νέο path
+    path('sales/export/', export_sales_excel, name='sale-export'),
 ]

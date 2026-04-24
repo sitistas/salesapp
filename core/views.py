@@ -8,6 +8,10 @@ from .models import Sale
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from .forms import SaleForm
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+from .models import Sale
 
 @login_required
 def dashboard_view(request):
@@ -59,3 +63,53 @@ class SaleCreateView(LoginRequiredMixin, CreateView):
         # Αυτόματη ανάθεση του συνδεδεμένου χρήστη ως salesperson
         form.instance.salesperson = self.request.user
         return super().form_valid(form)
+    
+def export_sales_excel(request):
+    # Δημιουργία του response με το σωστό header για Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Sales_Report.xlsx"'
+
+    # Δημιουργία αρχείου
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Πωλήσεις"
+
+    # Ορισμός κεφαλίδων
+    headers = ['Ημερομηνία', 'Κατάστημα', 'Προϊόν', 'Ποσότητα', 'Promoter']
+    ws.append(headers)
+
+    # Μορφοποίηση κεφαλίδων (Bold & Center)
+    header_font = Font(bold=True)
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+
+    # Φιλτράρισμα δεδομένων (Role-based)
+    sales = Sale.objects.all().select_related('store', 'product', 'salesperson').order_by('-date')
+    
+    if request.user.role == 'promoter':
+        sales = sales.filter(salesperson=request.user)
+
+    # Προσθήκη δεδομένων
+    for sale in sales:
+        ws.append([
+            sale.date.strftime("%d/%m/%Y"),
+            sale.store.name,
+            sale.product.name,
+            sale.quantity,
+            sale.salesperson.get_full_name() or sale.salesperson.username
+        ])
+
+    # Αυτόματη ρύθμιση πλάτους στηλών
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except: pass
+        ws.column_dimensions[column].width = max_length + 2
+
+    wb.save(response)
+    return response
