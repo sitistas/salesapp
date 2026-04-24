@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sales Management{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-50">
+
+    <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
+        <div class="px-3 py-3 lg:px-5 lg:pl-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center justify-start">
+                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap">SalesApp 🇬🇷</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="mr-3 text-sm text-gray-500">{{ user.get_full_name }} ({{ user.get_role_display }})</span>
+                    <a href="/logout" class="text-sm text-red-600 hover:underline">Αποσύνδεση</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
+            <ul class="space-y-2 font-medium">
+                <li>
+                    <a href="/" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/sales" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Πωλήσεις</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/promotions" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Ενέργειες</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/competition" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Ανταγωνισμός</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/statistics" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Στατιστικά</span>
+                    </a>
+                </li>
+
+                {% if user.role != 'client' %}
+                <hr>
+                <li>
+                    <a href="/status" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3 text-blue-600">Sales Status</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/products" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Προϊόντα</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/stores" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <span class="ms-3">Καταστήματα</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if user.role == 'admin' %}
+                <li class="mt-5">
+                    <a href="/users" class="flex items-center p-2 text-white bg-gray-800 rounded-lg hover:bg-gray-700 group">
+                        <span class="ms-3">Διαχείριση Χρηστών</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </aside>
+
+    <div class="p-4 sm:ml-64">
+        <div class="p-4 mt-14">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</body>
+</html>
