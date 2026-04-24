@@ -1,0 +1,12 @@
+asgiref==3.11.1
+crispy-tailwind==1.0.3
+diff-match-patch==20241021
+Django==6.0.4
+django-crispy-forms==2.6
+django-import-export==4.4.0
+et_xmlfile==2.0.0
+openpyxl==3.1.5
+psycopg2-binary==2.9.12
+sqlparse==0.5.5
+tablib==3.9.0
+tzdata==2026.2
