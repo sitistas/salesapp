@@ -14,6 +14,30 @@
 </div>
 </div>
 
+<div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Αναζήτηση</label>
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Κατάστημα ή Προϊόν..." 
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Από</label>
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Έως</label>
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">Φιλτράρισμα</button>
+            <a href="{% url 'sale-list' %}" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-md hover:bg-gray-200 text-sm">Καθαρισμός</a>
+        </div>
+    </form>
+</div>
+
 <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
     <table class="w-full text-sm text-left text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">

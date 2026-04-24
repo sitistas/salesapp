@@ -45,12 +45,26 @@ class SaleListView(LoginRequiredMixin, ListView):
     model = Sale
     template_name = 'sales/sale_list.html'
     context_object_name = 'sales'
-    paginate_by = 50  # Spec requirement
+    paginate_by = 50
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('product', 'store', 'salesperson')
+        queryset = Sale.objects.all().select_related('product', 'store', 'salesperson')
+        
+        # 1. Φιλτράρισμα βάσει ρόλου (το κρατάμε!)
         if self.request.user.role == 'promoter':
             queryset = queryset.filter(salesperson=self.request.user)
+
+        # 2. Αναζήτηση (Search)
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(store__name__icontains=q) | queryset.filter(product__name__icontains=q)
+
+        # 3. Φιλτράρισμα Ημερομηνίας
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        if start_date and end_date:
+            queryset = queryset.filter(date__range=[start_date, end_date])
+
         return queryset.order_by('-date', '-created_at')
     
 class SaleCreateView(LoginRequiredMixin, CreateView):
