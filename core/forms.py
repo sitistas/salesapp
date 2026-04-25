@@ -38,3 +38,18 @@ class CompetitionForm(forms.ModelForm):
                 'placeholder': 'Π.χ. Ο ανταγωνιστής X έβαλε προσφορά 1+1 στο προϊόν Y...'
             }),
         }
+
+class StoreForm(forms.ModelForm):
+    class Meta:
+        model = Store
+        fields = ['name', 'address', 'city']
+        labels = {
+            'name': 'Όνομα Καταστήματος',
+            'address': 'Διεύθυνση',
+            'city': 'Πόλη',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'rounded-xl border-gray-200 w-full'}),
+            'address': forms.TextInput(attrs={'class': 'rounded-xl border-gray-200 w-full'}),
+            'city': forms.TextInput(attrs={'class': 'rounded-xl border-gray-200 w-full'}),
+        }

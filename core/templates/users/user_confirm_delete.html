@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-12">
+    <div class="bg-white p-8 rounded-2xl border border-red-100 shadow-2xl text-center">
+        <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+        </div>
+        
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Απενεργοποίηση Χρήστη;</h2>
+        <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+            Πρόκειται να απενεργοποιήσετε τον χρήστη <span class="font-bold text-gray-900">{{ object.username }}</span>. <br>
+            Ο χρήστης δεν θα μπορεί πλέον να συνδεθεί, αλλά τα δεδομένα του (πωλήσεις, ενέργειες κλπ) θα παραμείνουν στο σύστημα.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex flex-col gap-3">
+                <button type="submit" class="bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-100">
+                    Επιβεβαίωση Απενεργοποίησης
+                </button>
+                <a href="{% url 'user-list' %}" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition text-center border border-gray-200">
+                    Ακύρωση
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

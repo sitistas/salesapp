@@ -1,18 +1,23 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from .models import Sale, Promotion, Announcement
-from django.views.generic import ListView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Sale
+from .models import Sale, Store, Promotion, Competition, Announcement, Product, Category
+from django.views.generic import ListView, TemplateView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from .forms import SaleForm
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
-from .models import Sale
-from .models import Competition
+from django.contrib.auth import get_user_model
+from django import forms
+
+User = get_user_model()
+
+class StoreAccessMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role in ['admin', 'promoter']
 
 class CompetitionListView(LoginRequiredMixin, ListView):
     model = Competition
@@ -137,7 +142,47 @@ class SaleCreateView(LoginRequiredMixin, CreateView):
         # Αυτόματη ανάθεση του συνδεδεμένου χρήστη ως salesperson
         form.instance.salesperson = self.request.user
         return super().form_valid(form)
-    
+
+class SalesStatusView(UserPassesTestMixin, TemplateView):
+    template_name = 'dashboard/sales_status.html'
+
+    def test_func(self):
+        # Επιτρέπει πρόσβαση μόνο σε admin και promoter (όχι σε clients)
+        return self.request.user.role in ['admin', 'promoter']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sales = Sale.objects.all().select_related('product', 'store', 'salesperson')
+
+        # 1. Εφαρμογή Φίλτρων
+        store_id = self.request.GET.get('store')
+        promoter_id = self.request.GET.get('promoter')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        if store_id:
+            sales = sales.filter(store_id=store_id)
+        if promoter_id:
+            sales = sales.filter(salesperson_id=promoter_id)
+        if start_date:
+            sales = sales.filter(date__gte=start_date)
+        if end_date:
+            sales = sales.filter(date__lte=end_date)
+
+        # 2. Aggregation ανά Προϊόν
+        product_performance = (
+            sales.values('product__name')
+            .annotate(total_qty=Sum('quantity'))
+            .order_by('-total_qty')
+        )
+
+        context.update({
+            'product_performance': product_performance,
+            'stores': Store.objects.all(),
+            'promoters': User.objects.filter(role='promoter'),
+        })
+        return context
+
 def export_sales_excel(request):
     # Δημιουργία του response με το σωστό header για Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -187,3 +232,107 @@ def export_sales_excel(request):
 
     wb.save(response)
     return response
+
+class ProductListView(UserPassesTestMixin, ListView):
+    model = Product
+    template_name = 'products/product_list.html'
+    context_object_name = 'products'
+
+    def test_func(self):
+        return self.request.user.role in ['admin', 'promoter']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        return context
+
+# View για τη δημιουργία κατηγορίας (θα καλείται από το Modal)
+def add_category(request):
+    if request.method == 'POST' and request.user.role != 'client':
+        name = request.POST.get('name')
+        if name:
+            Category.objects.create(name=name)
+    return redirect('product-list')
+
+class StoreListView(LoginRequiredMixin, StoreAccessMixin, ListView):
+    model = Store
+    template_name = 'stores/store_list.html'
+    context_object_name = 'stores'
+
+    def get_queryset(self):
+        # Δείξε μόνο αυτά που δεν έχουν διαγραφεί (soft delete)
+        return Store.objects.filter(is_active=True)
+
+class StoreCreateView(LoginRequiredMixin, StoreAccessMixin, CreateView):
+    model = Store
+    fields = ['name', 'address', 'city'] # Προσάρμοσε τα πεδία ανάλογα με το μοντέλο σου
+    template_name = 'stores/store_form.html'
+    success_url = reverse_lazy('store-list')
+
+class StoreUpdateView(LoginRequiredMixin, StoreAccessMixin, UpdateView):
+    model = Store
+    fields = ['name', 'address', 'city']
+    template_name = 'stores/store_form.html'
+    success_url = reverse_lazy('store-list')
+
+class StoreDeleteView(LoginRequiredMixin, StoreAccessMixin, DeleteView):
+    model = Store
+    template_name = 'stores/store_confirm_delete.html'
+    success_url = reverse_lazy('store-list')
+
+
+class AdminOnlyMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'admin'
+
+class UserListView(LoginRequiredMixin, AdminOnlyMixin, ListView):
+    model = User
+    template_name = 'users/user_list.html'
+    context_object_name = 'users_list'
+
+    def get_queryset(self):
+        # Δείχνουμε μόνο τους ενεργούς χρήστες (soft delete)
+        return User.objects.filter(is_active=True).order_by('-date_joined')
+
+class UserCreateView(LoginRequiredMixin, AdminOnlyMixin, CreateView):
+    model = User
+    template_name = 'users/user_form.html'
+    fields = ['username', 'email', 'first_name', 'last_name', 'role', 'password']
+    success_url = reverse_lazy('user-list')
+
+    def form_valid(self, form):
+        # Χρειάζεται προσοχή για να γίνει σωστά hash το password
+        user = form.save(commit=False)
+        user.set_password(form.cleaned_data['password'])
+        user.save()
+        return super().form_valid(form)
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Κάνουμε το password field να φαίνεται ως password input
+        form.fields['password'].widget = forms.PasswordInput(attrs={'class': 'rounded-xl border-gray-200 w-full'})
+        return form
+
+class UserUpdateView(LoginRequiredMixin, AdminOnlyMixin, UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'role', 'email']
+    template_name = 'users/user_form.html'
+    success_url = reverse_lazy('user-list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Προσθέτουμε Tailwind classes στα πεδία
+        for field in form.fields.values():
+            field.widget.attrs.update({'class': 'rounded-xl border-gray-200 w-full focus:ring-indigo-500 focus:border-indigo-500'})
+        return form
+
+class UserDeleteView(LoginRequiredMixin, AdminOnlyMixin, DeleteView):
+    model = User
+    template_name = 'users/user_confirm_delete.html'
+    success_url = reverse_lazy('user-list')
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.is_active = False # Soft delete
+        user.save()
+        return redirect(self.success_url)

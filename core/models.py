@@ -2,6 +2,16 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
+class SoftDeleteModel(models.Model):
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True  # Αυτό σημαίνει ότι δεν θα φτιαχτεί πίνακας στη βάση γι' αυτό
+
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save()
+
 # --- 1. Custom User Model ---
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -10,6 +20,12 @@ class User(AbstractUser):
         ('client', 'Client'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='promoter')
+
+    def delete(self, *args, **kwargs):
+        """Soft delete: Απενεργοποίηση αντί για οριστική διαγραφή"""
+        self.is_active = False
+        self.save()
+        # Δεν καλούμε το super().delete() για να μην σβηστεί η εγγραφή
 
 # --- 2. Soft Delete Logic (Base Model) ---
 class SoftDeleteManager(models.Manager):
@@ -33,20 +49,35 @@ class BaseModel(models.Model):
 
 # --- 3. Business Logic Models ---
 
-class Category(BaseModel):
-    name = models.CharField(max_length=100)
-    def __str__(self): return self.name
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
-class Product(BaseModel):
-    code = models.CharField(max_length=50, unique=True)
+    def __str__(self):
+        return self.name
+
+class Product(models.Model):
+    sku = models.CharField(max_length=50, unique=True) # Κωδικός
     name = models.CharField(max_length=200)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    def __str__(self): return f"{self.code} - {self.name}"
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
 
-class Store(BaseModel):
+    def __str__(self):
+        return f"{self.sku} - {self.name}"
+
+class Store(models.Model):
     name = models.CharField(max_length=200)
-    def __str__(self): return self.name
+    address = models.CharField(max_length=300, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(default=True)  # Soft delete flag
 
+    def delete(self, *args, **kwargs):
+        # Αντί για κανονική διαγραφή, κάνουμε soft delete
+        self.is_active = False
+        self.save()
+        # Δεν καλούμε το super().delete(), οπότε η εγγραφή μένει στη βάση!
+
+    def __str__(self):
+        return self.name
+    
 class ActionType(BaseModel):
     name = models.CharField(max_length=100)
     def __str__(self): return self.name
@@ -54,7 +85,7 @@ class ActionType(BaseModel):
 # --- 4. Transactional Models (Sales, Promotions, Competition) ---
 
 class Sale(BaseModel):
-    date = models.DateField()
+    date = models.DateField(auto_now_add=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()

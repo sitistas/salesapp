@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Sales Status Per Product</h1>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-8">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Κατάστημα</label>
+                <select name="store" class="w-full rounded-lg border-gray-200 text-sm">
+                    <option value="">Όλα τα καταστήματα</option>
+                    {% for s in stores %}
+                    <option value="{{ s.id }}" {% if request.GET.store == s.id|stringformat:"i" %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Promoter</label>
+                <select name="promoter" class="w-full rounded-lg border-gray-200 text-sm">
+                    <option value="">Όλοι οι Promoters</option>
+                    {% for p in promoters %}
+                    <option value="{{ p.id }}" {% if request.GET.promoter == p.id|stringformat:"i" %}selected{% endif %}>{{ p.get_full_name|default:p.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Από</label>
+                <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="w-full rounded-lg border-gray-200 text-sm">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Έως</label>
+                <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="w-full rounded-lg border-gray-200 text-sm">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition">
+                    Ενημέρωση
+                </button>
+                <a href="{% url 'sales-status' %}" class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in product_performance %}
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-blue-50 rounded-xl">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Συνολική Ποσότητα</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-1">{{ item.product__name }}</h3>
+            <p class="text-3xl font-black text-blue-600">{{ item.total_qty }} <span class="text-sm font-normal text-gray-400">τεμ.</span></p>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white p-12 rounded-2xl border-2 border-dashed border-gray-100 text-center text-gray-400">
+            Δεν υπάρχουν δεδομένα πωλήσεων για αυτά τα φίλτρα.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

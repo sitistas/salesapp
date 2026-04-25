@@ -5,9 +5,13 @@ from .models import User, Category, Product, Store, ActionType, Sale, Promotion,
 admin.site.register(User)
 admin.site.register(Category)
 admin.site.register(Product)
-admin.site.register(Store)
 admin.site.register(ActionType)
 admin.site.register(Sale)
 admin.site.register(Promotion)
 admin.site.register(Competition)
 admin.site.register(Announcement)
+
+@admin.register(Store)
+class StoreAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'is_active')
+    list_filter = ('is_active',)

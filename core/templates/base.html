@@ -56,7 +56,7 @@
                 {% if user.role != 'client' %}
                 <hr>
                 <li>
-                    <a href="/status" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                    <a href="{% url 'sales-status' %}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
                         <span class="ms-3 text-blue-600">Sales Status</span>
                     </a>
                 </li>

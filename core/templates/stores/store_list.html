@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Διαχείριση Καταστημάτων</h1>
+    <a href="{% url 'store-create' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Νέο Κατάστημα
+    </a>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold tracking-widest border-b">
+            <tr>
+                <th class="px-6 py-4">Όνομα Καταστήματος</th>
+                <th class="px-6 py-4">Διεύθυνση</th>
+                <th class="px-6 py-4 text-center">Ενέργειες</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for store in stores %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4 font-bold text-gray-900">{{ store.name }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ store.address }} <span class="text-xs text-gray-400">({{ store.city }})</span></td>
+                <td class="px-6 py-4 text-center space-x-2">
+                    <a href="{% url 'store-update' store.pk %}" class="text-blue-600 hover:text-blue-800 font-semibold text-xs">Επεξεργασία</a>
+                    <a href="{% url 'store-delete' store.pk %}" class="text-red-600 hover:text-red-800 font-semibold text-xs">Διαγραφή</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
