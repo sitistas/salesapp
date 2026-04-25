@@ -18,12 +18,20 @@ class CompetitionListView(LoginRequiredMixin, ListView):
     model = Competition
     template_name = 'competition/competition_list.html'
     context_object_name = 'entries'
-    
+    paginate_by = 10  # Προσθήκη Pagination
+
     def get_queryset(self):
-        # Οι Promoters βλέπουν μόνο τα δικά τους
+        queryset = Competition.objects.all().select_related('store', 'salesperson')
+        
         if self.request.user.role == 'promoter':
-            return Competition.objects.filter(salesperson=self.request.user).select_related('store')
-        return Competition.objects.all().select_related('store', 'salesperson')
+            queryset = queryset.filter(salesperson=self.request.user)
+
+        # Φίλτρο αναζήτησης
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(store__name__icontains=q) | queryset.filter(comments__icontains=q)
+            
+        return queryset.order_by('-date')
 
 class CompetitionCreateView(LoginRequiredMixin, CreateView):
     model = Competition
@@ -35,6 +43,35 @@ class CompetitionCreateView(LoginRequiredMixin, CreateView):
         form.instance.salesperson = self.request.user
         return super().form_valid(form)
     
+def export_competition_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Competition_Report.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Ανταγωνισμός"
+
+    headers = ['Ημερομηνία', 'Κατάστημα', 'Σχόλια / Παρατηρήσεις', 'Promoter']
+    ws.append(headers)
+
+    # Styling
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    entries = Competition.objects.all().select_related('store', 'salesperson')
+    if request.user.role == 'promoter':
+        entries = entries.filter(salesperson=request.user)
+
+    for entry in entries:
+        ws.append([
+            entry.date.strftime("%d/%m/%Y"),
+            entry.store.name,
+            entry.comments,
+            entry.salesperson.get_full_name() or entry.salesperson.username
+        ])
+
+    wb.save(response)
+    return response
 
 @login_required
 def dashboard_view(request):

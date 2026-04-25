@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load tailwind_filters %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'competition-list' %}" class="text-sm text-gray-500 hover:text-blue-600 flex items-center transition">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Επιστροφή στη λίστα
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+        <div class="bg-gray-800 p-6">
+            <h2 class="text-xl font-bold text-white">Καταγραφή Ανταγωνισμού</h2>
+            <p class="text-gray-400 text-xs mt-1">Εισάγετε παρατηρήσεις για τις ενέργειες του ανταγωνισμού στο κατάστημα.</p>
+        </div>
+
+        <form method="post" class="p-8 space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                {{ form|crispy }}
+            </div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    Αποθήκευση Καταγραφής
+                </button>
+                <a href="{% url 'competition-list' %}" class="flex-1 bg-gray-50 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-100 transition text-center border border-gray-200">
+                    Ακύρωση
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-6 bg-orange-50 border border-orange-100 rounded-xl p-4">
+        <div class="flex">
+            <svg class="h-5 w-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-orange-800">Συμβουλή</h3>
+                <p class="mt-1 text-xs text-orange-700">Περιγράψτε τιμές, προσφορές ή νέα προϊόντα που εντοπίσατε στο ράφι.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

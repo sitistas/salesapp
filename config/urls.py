@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from core.views import dashboard_view, SaleListView, SaleCreateView,export_sales_excel,CompetitionListView, CompetitionCreateView # Εδώ το νέο import
+from core.views import dashboard_view, SaleListView, SaleCreateView, export_competition_excel,export_sales_excel,CompetitionListView, CompetitionCreateView # Εδώ το νέο import
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,4 +13,5 @@ urlpatterns = [
     path('sales/export/', export_sales_excel, name='sale-export'),
     path('competition/', CompetitionListView.as_view(), name='competition-list'),
     path('competition/add/', CompetitionCreateView.as_view(), name='competition-create'),
+    path('competition/export/', export_competition_excel, name='competition-export'),
 ]
